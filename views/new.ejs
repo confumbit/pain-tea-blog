@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="/style.css">
+    <title>Write Blog</title>
+</head>
+<body>
+   <div class="header blogpage">
+        <a href="/">
+            <img src="/logo.png" alt="logo- As How" class="logo">
+            <div class="blog-name">pain tea</div>
+        </a>
+   </div>
+   <div class="header">
+       <h1 style="text-align: center; font-weight: 400;">Write a New Blog</h1>
+   </div>
+   <form action="/add/" method="post" class="form">
+        <input type="text" name="title" id="title" placeholder="title" required>
+        <input type="text" name="subtitle" id="subtitle" placeholder="subtitle" required>
+        <input type="text" name="author" id="author" placeholder="author" required>
+        <textarea name="article" id="article" class="article" placeholder="Write the article here" required></textarea>
+        <input type="submit" value="Submit">
+   </form>
+    
+</body>
+</html>

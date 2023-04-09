@@ -1,0 +1,129 @@
+@font-face {
+  font-family: "cmserif";
+  src: url("cmufont/cmunrm.woff") format("woff");
+}
+@font-face {
+  font-family: "cmserif";
+  src: url("cmufont/cmunbx.woff") format("woff");
+  font-weight: bold;
+}
+@font-face {
+  font-family: "cmserif";
+  src: url("cmufont/cmunbi.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: "cmserif";
+  src: url("cmufont/cmunti.woff") format("woff");
+  font-style: italic;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: cmserif;
+  text-decoration: none;
+}
+a {
+  color: #000000;
+}
+body {
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #fdf5f3;
+}
+.logo {
+  cursor: pointer;
+}
+.blog-name {
+  font-size: 32px;
+  margin-bottom: 5px;
+}
+.header a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+.blogpage {
+  margin-bottom: 50px;
+}
+.blogpage .blog-name {
+  font-size: 16px;
+}
+.blogpage img {
+  width: 64px;
+}
+.listTitle {
+  margin: 80px 0 40px 0;
+  font-size: 24px;
+}
+dl:hover {
+  opacity: 0.7;
+}
+dl dt {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: 0 40px;
+  font-weight: bold;
+  font-size: 24px;
+}
+dl dd {
+  margin-left: 60px;
+}
+@media screen and (max-width: 800px) {
+  dl dt {
+    padding: 0;
+    flex-direction: column;
+    font-size: 16px;
+    margin-bottom: 13px;
+  }
+  dl dt .titular {
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+  dl dd {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+.deets {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+@media screen and (max-width: 400px) {
+  .deets {
+    font-size: 14px;
+  }
+}
+.form {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  flex-direction: column;
+  width: 100vw;
+  height: 700px;
+  margin-top: 100px;
+  padding-left: 50px;
+}
+input {
+  width: 250px;
+}
+.article {
+  width: 80%;
+  height: 500px;
+}
+.blog {
+  padding: 0 80px;
+}
+@media screen and (max-width: 600px) {
+  .blog {
+    padding: 0 10px;
+  }
+}

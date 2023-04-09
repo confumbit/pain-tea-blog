@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow" />
+    <link rel="stylesheet" href="/style.css">
+    <title><%= post.title %></title>
+</head>
+<body>
+   <div class="header blogpage">
+        <a href="/">
+            <img src="/logo.png" alt="logo- As How" class="logo">
+            <div class="blog-name">pain tea</div>
+        </a>
+   </div>
+   <div class="header">
+       <h1 style="font-weight: 400; text-align: center;"><%= post.title %></h1>
+       <h4 style="font-weight: 400; text-align: center;"><i><%= post.subtitle %></i></h4>
+       <br><br>
+       <br>
+       <div class="deets">
+        <h4 style="text-align: left;"><i><%= post.date.toLocaleDateString() %> &nbsp; <%= post.date.toLocaleTimeString() %></i></h4>
+        <h4 style="text-align: right;"><i>-<%= post.author %></i></h4>
+       </div>
+       <br><br>
+   </div>
+   <br><br><br>
+   <p class="blog">
+    <%= post.article %>
+   </p>
+</body>
+</html>

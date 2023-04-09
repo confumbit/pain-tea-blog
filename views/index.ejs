@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow" />
+    <meta name="url" content="https://paintea.onrender.com/">
+    <meta name="type" content="website">
+    <meta name="image" content="/favicon.png">
+    <meta name="description" content="A blog where two people share tea about the pain that has befallen them in recent times.">
+    <meta name="og:url" content="https://paintea.onrender.com/">
+    <meta name="og:type" content="website">
+    <meta name="og:image" content="/favicon.png">
+    <meta name="og:description" content="A blog where two people share tea about the pain that has befallen them in recent times.">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" href="/style.css">
+    <title>Pain Tea</title>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7KZ42RR1JH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7KZ42RR1JH');
+</script>
+
+<body>
+   <div class="header">
+        <a href="/">
+            <img src="/logo.png" alt="logo- As How" class="logo">
+            <div class="blog-name">pain tea</div>
+            <i>A blog where two people share tea about the pain that has befallen them in recent times.</i>
+        </a>
+   </div>
+   <div class="listTitle">Blog Posts</div>
+   <dl class="blogList">
+        <%
+        posts.forEach((post) => {
+        %>
+
+            <% let date = post.date.toLocaleDateString() %>
+            <% let time = post.date.toLocaleTimeString() %>
+            <a href=<%= "/blog/"+post._id %> >
+                <dt><span class="titular"><%= post.title %></span><span><%= date %>&nbsp;&nbsp;&nbsp;&nbsp;<%= time %></span></dt>
+                <dd><%= post.subtitle %></dd>
+            </a>
+       <%
+        });
+       %>
+   </dl>
+</body>
+</html>
