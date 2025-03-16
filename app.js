@@ -1,64 +1,129 @@
 const express = require("express");
 const ejs = require("ejs");
 const path = require("path");
-const mongoose = require("mongoose");
+const { Pool } = require("pg");
+require("dotenv").config();
 
 // Init express
 const app = express();
-const port = process.env.PORT || 3000;
-
-// Configure environment variables
-require("dotenv").config();
+const port = process.env.PORT || 3001;
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use(express.urlencoded({ extended: true }));
 
 // Set the view engine to ejs
 app.set("view engine", "ejs");
 
-// Connect to database
-mongoose
-  .connect(process.env.DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    autoIndex: false,
-    dbName: "pain-tea-blog",
-  })
-  .then(() => console.log("Connected to database."))
-  .catch((err) => console.error(err));
+const fs = require("fs");
+const pg = require("pg");
+const url = require("url");
 
-// Define schema
-const articleSchema = new mongoose.Schema({
-  title: String,
-  subtitle: String,
-  author: String,
-  article: String,
-  date: Date,
-});
+const config = {
+  user: "avnadmin",
+  password: process.env.DB_PASS,
+  host: "pg-2365fd22-heatblast0044-2609.h.aivencloud.com",
+  port: 15964,
+  database: "defaultdb",
+  ssl: {
+    rejectUnauthorized: true,
+    ca: `-----BEGIN CERTIFICATE-----
+MIIETTCCArWgAwIBAgIUUrlCsDb6qtZRMTtmq8jM3oyERNswDQYJKoZIhvcNAQEM
+BQAwQDE+MDwGA1UEAww1YWFiYjgwZjItYjhlZC00OTBiLWFjMDktZTUwYTg4YmI1
+OGFlIEdFTiAxIFByb2plY3QgQ0EwHhcNMjUwMzE1MjAyMjQyWhcNMzUwMzEzMjAy
+MjQyWjBAMT4wPAYDVQQDDDVhYWJiODBmMi1iOGVkLTQ5MGItYWMwOS1lNTBhODhi
+YjU4YWUgR0VOIDEgUHJvamVjdCBDQTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCC
+AYoCggGBALQCamGQ+vEDG8mUzjVW7nBw9zwKblVtn7g9DN5zyM4IMuNXTd+JsxCr
+t6jL4rhoWUTWCQSSOEy3aK/MbRnGjahCVUS2Hfl0eigp+Xmm8+BWOCH10NhFXOR0
+riWIXirfq71MiKOruyetNryC4jtEnMctSZjTFJUR+mL/a2eC/num4+L1br+HShEA
+Rht4ejXf78mOQ3LRBnMzLR/G+aaXX/tTAP8vk9imUdqhuWc/bpJKt9UEBacffo0+
+XVEBQWquP+VukUp5dt5Pj2FjMrM3IMwAl9zWVMhErsYFoAQ9U1ahAm3NrzDZvQwP
+diBxG0R1i3SRe+YxXjs619SDitNSPPAXW9BjOTjgwVDVRrYvgic8YUH4ynnFx5mj
+3UZxFVSKLWQV8rINS4vjYTNnPVcLSGeuqgco/HzM/bt180I3PZXuDfBwI0RNV8MC
+vSZcKCqoDWuJk6Q5t6YSk6uTw7bL826uvzq5RQtYTxuzNVaHKAtcj2bTpKns7RXb
+b2IwO4zR7QIDAQABoz8wPTAdBgNVHQ4EFgQUUXR1pgxBPV+VOlWDd2g/8WfFJHcw
+DwYDVR0TBAgwBgEB/wIBADALBgNVHQ8EBAMCAQYwDQYJKoZIhvcNAQEMBQADggGB
+AF3/p2XJgHkxj21cpcWaF4w4poTbsPGiwZh0wIu5oRHeP3v3EhcaUR1pHGJQLE/1
+spLPcQfCgX6B0WISoXkZnZqW2LaJ67mh0QJ+47Ky2FcLEjHU4KMHogypp2Flmnrh
+J1W+hOUpYNGTC202vqv0R6/Gqd4F1L5VYtLoQPyCJ8yYen7KDs4brbU41/YUhRnH
+SJG6TMJSrgBVaIibH21fHudsIdcOIhh6S1+L7wzqZ0tORNmciAh5/VnwI9BR0VcD
+3iT/A4uFaNKhh48wMOm0s8CioI5g2lRX9rATFvnL/RP/4xi5mmHp+nB+in9vKjXK
+y+8kna8QXo/eXxlEU7Y0Ved09fE4rYdN2n6l7jK2Mnr0g8t5EQqteDWSKeH7c71O
+CEBarq0Z3DEHqLA9rgmL90IdVHvKchtUhMN/r4bCkzHnWh09BbirsumWJUO3JzAz
+JeeQUGbR7NZqiLw2mN36DYvrlIN09ozo1AVqCmSeRHuym2gPrrU5RutzlbxuCdky
+8w==
+-----END CERTIFICATE-----`,
+  },
+};
 
-const Article = mongoose.model("Article", articleSchema);
+// Connect to PostgreSQL database
+const pool = new Pool(config);
+
+pool
+  .connect()
+  .then(() => console.log("Connected to PostgreSQL database."))
+  .catch((err) => console.error("Database connection error:", err));
 
 //Routes
 // Render home page
-app.get("/", (request, response) => {
-  Article.find({})
-    .then((articles) => {
-      console.log(articles);
-      response.render("index", { posts: articles });
-    })
-    .catch((err) => console.log(err));
+app.get("/", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM articles ORDER BY date DESC"
+    );
+    res.render("index", { posts: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching articles");
+  }
 });
 
-// Render blog page
-app.get("/blog/:id", (request, response) => {
-  Article.findById(request.params.id)
-    .then((article) => {
-      console.log(article);
-      response.render("blog", { post: article });
-    })
-    .catch((err) => console.log(err));
+// Increase view count when an article is viewed
+app.post("/blog/:id/view", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      "UPDATE articles SET views = views + 1 WHERE id = $1 RETURNING views",
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
+    res.json({ message: "View count updated", views: result.rows[0].views });
+  } catch (error) {
+    console.error("Error updating view count:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/blog/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Fetch article
+    const result = await pool.query("SELECT * FROM articles WHERE id = $1", [
+      id,
+    ]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send("Article not found");
+    }
+
+    const article = result.rows[0];
+
+    // Increment view count
+    await pool.query("UPDATE articles SET views = views + 1 WHERE id = $1", [
+      id,
+    ]);
+
+    res.render("blog", { post: article });
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    res.status(500).send("Server error");
+  }
 });
 
 // Render new blog form
@@ -66,26 +131,20 @@ app.get("/new", (req, res) => {
   res.render("new");
 });
 
-// Post data to mongodb
-app.post("/add", (req, res) => {
+// Post data to PostgreSQL
+app.post("/add", async (req, res) => {
   const { title, subtitle, author, article } = req.body;
-  const newArticle = new Article({
-    title,
-    subtitle,
-    author,
-    article,
-    date: new Date(),
-  });
-
-  newArticle
-    .save()
-    .then((article) => {
-      console.log(article);
-      console.log("Data inserted successfully.");
-    })
-    .catch((err) => console.log(err));
-
-  res.send("Article uploaded successfully.");
+  try {
+    await pool.query(
+      "INSERT INTO articles (title, subtitle, author, article, date) VALUES ($1, $2, $3, $4, NOW())",
+      [title, subtitle, author, article]
+    );
+    console.log("Article inserted successfully.");
+    res.send("Article uploaded successfully.");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error saving article");
+  }
 });
 
 // Start the server
