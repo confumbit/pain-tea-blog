@@ -112,6 +112,11 @@ app.get("/blog/:id", async (req, res) => {
 
     const article = result.rows[0];
 
+    await pool.query(
+      "UPDATE articles SET views = views + 1 WHERE id = $1 RETURNING views",
+      [id]
+    );
+
     // Fetch comments for the article
     const commentsResult = await pool.query(
       "SELECT * FROM comments WHERE article_id = $1 ORDER BY date DESC",
