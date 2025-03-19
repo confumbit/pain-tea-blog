@@ -11,6 +11,7 @@ const port = process.env.PORT || 3001;
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Set the view engine to ejs
 app.set("view engine", "ejs");
@@ -99,27 +100,25 @@ app.post("/blog/:id/view", async (req, res) => {
   }
 });
 
+// fetch blog page by id
 app.get("/blog/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Fetch article
     const result = await pool.query("SELECT * FROM articles WHERE id = $1", [
       id,
     ]);
-
-    if (result.rowCount === 0) {
-      return res.status(404).send("Article not found");
-    }
+    if (result.rowCount === 0) return res.status(404).send("Article not found");
 
     const article = result.rows[0];
 
-    // Increment view count
-    await pool.query("UPDATE articles SET views = views + 1 WHERE id = $1", [
-      id,
-    ]);
+    // Fetch comments for the article
+    const commentsResult = await pool.query(
+      "SELECT * FROM comments WHERE article_id = $1 ORDER BY date DESC",
+      [id]
+    );
 
-    res.render("blog", { post: article });
+    res.render("blog", { post: article, comments: commentsResult.rows });
   } catch (error) {
     console.error("Error fetching article:", error);
     res.status(500).send("Server error");
@@ -144,6 +143,40 @@ app.post("/add", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Error saving article");
+  }
+});
+
+app.get("/blog/:id/comments", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT * FROM comments WHERE article_id = $1 ORDER BY date DESC",
+      [id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/blog/:id/comments", async (req, res) => {
+  const { id } = req.params;
+  const { name, comment } = req.body;
+
+  if (!name || !comment) {
+    return res.status(400).json({ message: "Name and comment are required" });
+  }
+
+  try {
+    await pool.query(
+      "INSERT INTO comments (article_id, name, comment, date) VALUES ($1, $2, $3, NOW())",
+      [id, name, comment]
+    );
+    res.json({ message: "Comment added successfully" });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
