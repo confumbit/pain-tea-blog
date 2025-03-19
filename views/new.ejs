@@ -18,12 +18,37 @@
    <div class="header">
        <h1 style="text-align: center; font-weight: 400;">Write a New Blog</h1>
    </div>
-   <form action="/add/" method="post" class="form">
-        <input type="text" name="title" id="title" placeholder="title" required>
-        <input type="text" name="subtitle" id="subtitle" placeholder="subtitle" required>
-        <input type="text" name="author" id="author" placeholder="author" required>
-        <textarea name="article" id="article" class="article" placeholder="Write the article here" required></textarea>
-        <input type="submit" value="Submit">
-   </form>
+   <form action="/add/" method="post" class="form" enctype="multipart/form-data">
+    <input type="text" name="title" id="title" placeholder="title" required>
+    <input type="text" name="subtitle" id="subtitle" placeholder="subtitle" required>
+
+    <div class="author-section">
+        <div id="author-image-preview" style="display: flex;align-items: center; gap: 10px;">
+            <input type="text" name="author" id="author" placeholder="author" required onblur="fetchAuthorImage()">
+            <img src="https://i.imgur.com/eKfRhGQ.png" alt="Default Image" id="existing-author-image" width="30px">
+            <input type="file" name="authorImage" id="authorImage">
+        </div>
+    </div>
+
+    <textarea name="article" id="article" class="article" placeholder="Write the article here" required></textarea>
+    <input type="submit" value="Submit">
+</form>
+
+<script>
+async function fetchAuthorImage() {
+    const author = document.getElementById("author").value;
+    if (!author) return;
+
+    const response = await fetch(`/author-image?author=${encodeURIComponent(author)}`);
+    const data = await response.json();
+
+    if (data.image) {
+        document.getElementById("existing-author-image").src = data.image;
+    } else {
+        document.getElementById("existing-author-image").src = "/default-avatar.png";
+    }
+}
+</script>
+
 </body>
 </html>

@@ -13,6 +13,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const fileUpload = require("express-fileupload");
+
+app.use(fileUpload());
+
 // Set the view engine to ejs
 app.set("view engine", "ejs");
 
@@ -135,16 +139,92 @@ app.get("/new", (req, res) => {
   res.render("new");
 });
 
+const axios = require("axios");
+const FormData = require("form-data");
+
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID; // Store in .env
+
+async function uploadToImgur(imageBuffer) {
+  try {
+    const formData = new FormData();
+    formData.append("image", imageBuffer.toString("base64"));
+
+    const response = await axios.post(
+      "https://api.imgur.com/3/upload",
+      formData,
+      {
+        headers: {
+          Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+          ...formData.getHeaders(),
+        },
+      }
+    );
+
+    return response.data.data.link; // URL of the uploaded image
+  } catch (error) {
+    console.error("Imgur upload error:", error);
+    return null;
+  }
+}
+
+app.get("/author-image", async (req, res) => {
+  const { author } = req.query;
+  if (!author) return res.json({ image: null });
+
+  try {
+    const result = await pool.query(
+      "SELECT author_image FROM articles WHERE author = $1 LIMIT 1",
+      [author]
+    );
+
+    if (result.rows.length > 0) {
+      res.json({ image: result.rows[0].author_image });
+    } else {
+      res.json({ image: null });
+    }
+  } catch (error) {
+    console.error("Error fetching author image:", error);
+    res.status(500).json({ image: null });
+  }
+});
+
+app.post("/add_image", async (req, res) => {
+  let authorImage = await uploadToImgur(req.files.authorImage.data);
+  console.log(authorImage);
+});
+
 // Post data to PostgreSQL
+// Handle new article submission with Imgur upload
 app.post("/add", async (req, res) => {
   const { title, subtitle, author, article } = req.body;
+  let authorImage = null;
+
+  if (req.files && req.files.authorImage) {
+    const imageBuffer = req.files.authorImage.data;
+    authorImage = await uploadToImgur(imageBuffer);
+  }
+
+  console.log(authorImage);
+
   try {
-    await pool.query(
-      "INSERT INTO articles (title, subtitle, author, article, date) VALUES ($1, $2, $3, $4, NOW())",
-      [title, subtitle, author, article]
+    // Check if author already has an image
+    const existingAuthor = await pool.query(
+      "SELECT author_image FROM articles WHERE author = $1 LIMIT 1",
+      [author]
     );
+
+    const finalImage =
+      existingAuthor.rows.length > 0
+        ? existingAuthor.rows[0].author_image
+        : authorImage;
+
+    await pool.query(
+      "INSERT INTO articles (title, subtitle, author, article, date, author_image) VALUES ($1, $2, $3, $4, NOW(), $5)",
+      [title, subtitle, author, article, finalImage]
+    );
+
     console.log("Article inserted successfully.");
-    res.send("Article uploaded successfully.");
+    res.redirect("/");
   } catch (err) {
     console.error(err);
     res.status(500).send("Error saving article");
