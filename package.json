@@ -1,7 +1,7 @@
 {
   "name": "paintea-blog",
   "version": "1.0.0",
-  "description": "A blog, a blog, where a bunch of us write about varied strains of things.",
+  "description": "A blog, a blog, where a bunch of us write about various strains of things.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
