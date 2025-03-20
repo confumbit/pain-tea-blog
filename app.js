@@ -20,6 +20,11 @@ app.use(fileUpload());
 // Set the view engine to ejs
 app.set("view engine", "ejs");
 
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID;
+const IMGUR_CLIENT_SECRET = process.env.IMGUR_CLIENT_SECRET;
+let IMGUR_ACCESS_TOKEN = process.env.IMGUR_ACCESS_TOKEN; // Can change dynamically
+let IMGUR_REFRESH_TOKEN = process.env.IMGUR_REFRESH_TOKEN;
+
 const fs = require("fs");
 const pg = require("pg");
 const url = require("url");
@@ -142,26 +147,60 @@ app.get("/new", (req, res) => {
 const axios = require("axios");
 const FormData = require("form-data");
 
-const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID; // Store in .env
+async function refreshImgurToken() {
+  try {
+    const response = await axios.post(
+      "https://api.imgur.com/oauth2/token",
+      null,
+      {
+        params: {
+          refresh_token: IMGUR_REFRESH_TOKEN,
+          client_id: IMGUR_CLIENT_ID,
+          client_secret: IMGUR_CLIENT_SECRET,
+          grant_type: "refresh_token",
+        },
+      }
+    );
+
+    IMGUR_ACCESS_TOKEN = response.data.access_token; // Update token
+    console.log("Imgur Access Token Refreshed");
+
+    return IMGUR_ACCESS_TOKEN;
+  } catch (error) {
+    console.error(
+      "Error refreshing Imgur token:",
+      error.response?.data || error.message
+    );
+    return null;
+  }
+}
 
 async function uploadToImgur(imageBuffer) {
   try {
     const formData = new FormData();
     formData.append("image", imageBuffer.toString("base64"));
 
-    const response = await axios.post(
+    let response = await axios.post(
       "https://api.imgur.com/3/upload",
       formData,
       {
         headers: {
-          Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+          Authorization: `Bearer ${IMGUR_ACCESS_TOKEN}`,
           ...formData.getHeaders(),
         },
       }
     );
 
-    return response.data.data.link; // URL of the uploaded image
+    return response.data.data.link; // Image URL
   } catch (error) {
+    if (error.response && error.response.status === 403) {
+      console.warn("Imgur token expired. Refreshing...");
+      const newToken = await refreshImgurToken();
+      if (!newToken) throw new Error("Failed to refresh Imgur token");
+
+      return uploadToImgur(imageBuffer); // Retry with new token
+    }
+
     console.error("Imgur upload error:", error);
     return null;
   }
@@ -203,6 +242,8 @@ app.post("/add", async (req, res) => {
     const imageBuffer = req.files.authorImage.data;
     authorImage = await uploadToImgur(imageBuffer);
   }
+
+  console.log(authorImage);
 
   try {
     // Check if author already has an image
