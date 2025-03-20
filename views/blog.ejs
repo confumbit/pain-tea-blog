@@ -25,7 +25,7 @@
         <h4 style="text-align: left;"><i><%= post.date.toLocaleDateString() %> &nbsp; <%= post.date.toLocaleTimeString() %></i></h4>
         <span>
             <h4 style="text-align: right; display: flex; align-items: center;">
-                -&nbsp;<img src="<%= post.author_image %>" alt="" width="40">&nbsp;
+                -&nbsp;<img src="<%= post.author_image %>" alt="" width="30">&nbsp;
                 <i><%= post.author %></i>
             </h4>
         </span>
@@ -35,7 +35,7 @@
        <br><br>
    </div>
    <br><br><br>
-   <p class="blog">
+   <p class="blog" style="white-space: pre-wrap;">
     <%= post.article %>
    </p>
 <br><br><br>

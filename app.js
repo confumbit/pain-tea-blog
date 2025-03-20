@@ -204,8 +204,6 @@ app.post("/add", async (req, res) => {
     authorImage = await uploadToImgur(imageBuffer);
   }
 
-  console.log(authorImage);
-
   try {
     // Check if author already has an image
     const existingAuthor = await pool.query(
