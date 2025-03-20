@@ -20,11 +20,6 @@ app.use(fileUpload());
 // Set the view engine to ejs
 app.set("view engine", "ejs");
 
-const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID;
-const IMGUR_CLIENT_SECRET = process.env.IMGUR_CLIENT_SECRET;
-let IMGUR_ACCESS_TOKEN = process.env.IMGUR_ACCESS_TOKEN; // Can change dynamically
-let IMGUR_REFRESH_TOKEN = process.env.IMGUR_REFRESH_TOKEN;
-
 const fs = require("fs");
 const pg = require("pg");
 const url = require("url");
@@ -147,64 +142,34 @@ app.get("/new", (req, res) => {
 const axios = require("axios");
 const FormData = require("form-data");
 
-async function refreshImgurToken() {
+const cloudinary = require("cloudinary").v2;
+
+// Configure Cloudinary with credentials
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Upload image to Cloudinary
+async function uploadToCloudinary(imageBuffer) {
   try {
-    const response = await axios.post(
-      "https://api.imgur.com/oauth2/token",
-      null,
-      {
-        params: {
-          refresh_token: IMGUR_REFRESH_TOKEN,
-          client_id: IMGUR_CLIENT_ID,
-          client_secret: IMGUR_CLIENT_SECRET,
-          grant_type: "refresh_token",
-        },
-      }
-    );
+    // Convert Buffer to base64
+    const base64Image = `data:image/png;base64,${imageBuffer.toString("base64")}`;
 
-    IMGUR_ACCESS_TOKEN = response.data.access_token; // Update token
-    console.log("Imgur Access Token Refreshed");
+    // Upload image
+    const result = await cloudinary.uploader.upload(base64Image, {
+      folder: "uploads", // Optional: Set a folder name in Cloudinary
+    });
 
-    return IMGUR_ACCESS_TOKEN;
+    console.log(result.secure_url);
+    return result.secure_url; // Return the image URL
   } catch (error) {
-    console.error(
-      "Error refreshing Imgur token:",
-      error.response?.data || error.message
-    );
+    console.error("Cloudinary upload error:", error);
     return null;
   }
 }
 
-async function uploadToImgur(imageBuffer) {
-  try {
-    const formData = new FormData();
-    formData.append("image", imageBuffer.toString("base64"));
-
-    let response = await axios.post(
-      "https://api.imgur.com/3/upload",
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${IMGUR_ACCESS_TOKEN}`,
-          ...formData.getHeaders(),
-        },
-      }
-    );
-
-    return response.data.data.link; // Image URL
-  } catch (error) {
-    if (error.response && error.response.status === 403) {
-      console.warn("Imgur token expired. Refreshing...");
-      const newToken = await refreshImgurToken();
-      if (!newToken) throw new Error("Failed to refresh Imgur token");
-
-      return uploadToImgur(imageBuffer); // Retry with new token
-    }
-
-    console.error("Imgur upload error:", error);
-    return null;
-  }
-}
 
 app.get("/author-image", async (req, res) => {
   const { author } = req.query;
@@ -228,22 +193,20 @@ app.get("/author-image", async (req, res) => {
 });
 
 app.post("/add_image", async (req, res) => {
-  let authorImage = await uploadToImgur(req.files.authorImage.data);
+  let authorImage = await uploadToCloudinary(req.files.authorImage.data);
   console.log(authorImage);
 });
 
 // Post data to PostgreSQL
-// Handle new article submission with Imgur upload
+// Handle new article submission with cloudinary upload
 app.post("/add", async (req, res) => {
   const { title, subtitle, author, article } = req.body;
   let authorImage = null;
 
   if (req.files && req.files.authorImage) {
     const imageBuffer = req.files.authorImage.data;
-    authorImage = await uploadToImgur(imageBuffer);
+    authorImage = await uploadToCloudinary(imageBuffer);
   }
-
-  console.log(authorImage);
 
   try {
     // Check if author already has an image
