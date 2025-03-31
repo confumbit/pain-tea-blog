@@ -43,8 +43,8 @@
         posts.forEach((post) => {
         %>
 
-            <% let date = post.date.toLocaleDateString() %>
-            <% let time = post.date.toLocaleTimeString() %>
+            <% let date = post.date.toLocaleDateString('en-GB', {timeZone: 'IST'}) %>
+            <% let time = post.date.toLocaleTimeString('en-GB', {timeZone: 'IST'}) %>
             <a href='<%= "/blog/"+post.id %>' class="blogItem">
                 <dt><span class="titular"><%= post.title %></span><span><%= date %>&nbsp;&nbsp;&nbsp;&nbsp;<%= time %></span></dt>
                 <dd><%= post.subtitle %></dd>

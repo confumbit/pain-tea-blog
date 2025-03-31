@@ -22,7 +22,7 @@
        <br><br>
        <br>
        <div class="deets">
-        <h4 style="text-align: left;"><i><%= post.date.toLocaleDateString() %> &nbsp; <%= post.date.toLocaleTimeString() %></i></h4>
+        <h4 style="text-align: left;"><i><%= post.date.toLocaleDateString('en-GB', {timeZone: 'IST'}) %> &nbsp; <%= post.date.toLocaleTimeString('en-GB', {timeZone: 'IST'}) %></i></h4>
         <span>
             <h4 style="text-align: right; display: flex; align-items: center;">
                 -&nbsp;<img src="<%= post.author_image %>" alt="" width="30">&nbsp;
