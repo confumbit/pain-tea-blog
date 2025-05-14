@@ -74,7 +74,7 @@ pool
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM articles ORDER BY date DESC"
+      "SELECT * FROM articles WHERE status='approved' ORDER BY date DESC"
     );
     res.render("index", { posts: result.rows });
   } catch (err) {
@@ -139,6 +139,11 @@ app.get("/new", (req, res) => {
   res.render("new");
 });
 
+// Render blog submission form
+app.get("/submission", (req, res) => {
+  res.render("submission");
+});
+
 const axios = require("axios");
 const FormData = require("form-data");
 
@@ -155,7 +160,9 @@ cloudinary.config({
 async function uploadToCloudinary(imageBuffer) {
   try {
     // Convert Buffer to base64
-    const base64Image = `data:image/png;base64,${imageBuffer.toString("base64")}`;
+    const base64Image = `data:image/png;base64,${imageBuffer.toString(
+      "base64"
+    )}`;
 
     // Upload image
     const result = await cloudinary.uploader.upload(base64Image, {
@@ -169,7 +176,6 @@ async function uploadToCloudinary(imageBuffer) {
     return null;
   }
 }
-
 
 app.get("/author-image", async (req, res) => {
   const { author } = req.query;
@@ -221,7 +227,7 @@ app.post("/add", async (req, res) => {
         : authorImage;
 
     await pool.query(
-      "INSERT INTO articles (title, subtitle, author, article, date, author_image) VALUES ($1, $2, $3, $4, NOW(), $5)",
+      "INSERT INTO articles (title, subtitle, author, article, date, author_image, status) VALUES ($1, $2, $3, $4, NOW(), $5, 'approved')",
       [title, subtitle, author, article, finalImage]
     );
 
@@ -264,6 +270,91 @@ app.post("/blog/:id/comments", async (req, res) => {
   } catch (error) {
     console.error("Error adding comment:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/submit", async (req, res) => {
+  const { title, subtitle, author, article, authorImageBase64 } = req.body;
+
+  if (!title || !subtitle || !author || !article) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  let authorImage = null;
+
+  // If a base64 image string is provided, upload it to Cloudinary
+  if (authorImageBase64) {
+    try {
+      const formattedBase64 = `data:image/png;base64,${authorImageBase64}`;
+      const result = await cloudinary.uploader.upload(formattedBase64, {
+        folder: "uploads",
+      });
+      authorImage = result.secure_url;
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      return res.status(500).json({ message: "Image upload failed" });
+    }
+  }
+
+  try {
+    // Check if author already has an image
+    const existingAuthor = await pool.query(
+      "SELECT author_image FROM articles WHERE author = $1 LIMIT 1",
+      [author]
+    );
+
+    const finalImage =
+      existingAuthor.rows.length > 0
+        ? existingAuthor.rows[0].author_image
+        : authorImage;
+
+    await pool.query(
+      "INSERT INTO articles (title, subtitle, author, article, date, author_image, status) VALUES ($1, $2, $3, $4, NOW(), $5, 'pending')",
+      [title, subtitle, author, article, finalImage]
+    );
+
+    res.redirect("/");
+  } catch (err) {
+    console.error("DB error:", err);
+    res.status(500).json({ message: "Database insert failed" });
+  }
+});
+
+app.post("/admin/approve/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("UPDATE articles SET status = 'approved' WHERE id = $1", [
+      id,
+    ]);
+    res.redirect("/pending");
+  } catch (error) {
+    console.error("Approval error:", error);
+    res.status(500).send("Approval failed");
+  }
+});
+
+app.post("/admin/reject/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("UPDATE articles SET status = 'rejected' WHERE id = $1", [
+      id,
+    ]);
+    res.redirect("/pending");
+  } catch (error) {
+    console.error("Rejection error:", error);
+    res.status(500).send("Rejection failed");
+  }
+});
+
+app.get("/pending", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM articles WHERE status = 'pending' ORDER BY date DESC"
+    );
+    res.render("pending", { posts: result.rows }); // Create `pending.ejs`
+  } catch (error) {
+    console.error("Error fetching pending articles:", error);
+    res.status(500).send("Server error");
   }
 });
 

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="url" content="https://ablogblog.onrender.com/" />
+    <meta name="type" content="website" />
+    <meta name="image" content="/favicon.png" />
+    <meta
+      name="description"
+      content="A blog, a blog, where a bunch of us write about various strains of things."
+    />
+    <meta name="og:url" content="https://ablogblog.onrender.com/" />
+    <meta name="og:type" content="website" />
+    <meta name="og:image" content="/favicon.png" />
+    <meta
+      name="og:description"
+      content="A blog, a blog, where a bunch of us write about various strains of things."
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="/favicon.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>a blog</title>
+  </head>
+
+  <body>
+    <div class="header">
+      <a href="/">
+        <img src="/logo.png" alt="logo- a blog" class="logo" width="192" />
+        <div class="blog-name">a blog</div>
+        <i
+          >A blog, a blog, where a bunch of us write about various strains of
+          things.</i
+        >
+      </a>
+    </div>
+    <div class="listTitle">Blog Submissions</div>
+    <dl class="blogList">
+      <% posts.forEach((post) => { %> <% let date =
+      post.date.toLocaleDateString('en-GB', {timeZone: 'IST'}) %> <% let time =
+      post.date.toLocaleTimeString('en-GB', {timeZone: 'IST'}) %>
+      <a href='<%= "/blog/"+post.id %>' class="blogItem">
+        <dt>
+          <span class="titular"><%= post.title %></span
+          ><span><%= date %>&nbsp;&nbsp;&nbsp;&nbsp;<%= time %></span>
+        </dt>
+        <dd><%= post.subtitle %></dd>
+        <dd style="display: flex; justify-content: flex-end;padding: 0 40px;">
+          <form method="POST" action="/admin/approve/<%= post.id %>">
+            <button type="submit">Approve</button>
+          </form>
+          <form method="POST" action="/admin/reject/<%= post.id %>" style="margin-left: 16px;">
+            <button type="submit">Reject</button>
+          </form>
+        </dd>
+      </a>
+      <% }); %>
+    </dl>
+  </body>
+</html>
