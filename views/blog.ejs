@@ -1,104 +1,128 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style.css" />
     <title><%= post.title %></title>
-</head>
-<body>
-   <div class="header blogpage">
-        <a href="/">
-            <img src="/logo.png" alt="logo- a blog" class="logo">
-            <div class="blog-name">a blog</div>
-        </a>
-   </div>
-   <div class="header">
-       <h1 style="font-weight: 400; text-align: center;"><%= post.title %></h1>
-       <h4 style="font-weight: 400; text-align: center;"><i><%= post.subtitle %></i></h4>
-       <br><br>
-       <br>
-       <div class="deets">
-        <h4 style="text-align: left;"><i><%= post.date.toLocaleDateString('en-GB', {timeZone: 'IST'}) %> &nbsp; <%= post.date.toLocaleTimeString('en-GB', {timeZone: 'IST'}) %></i></h4>
+  </head>
+  <body>
+    <div class="header blogpage">
+      <a href="/">
+        <img src="/logo.png" alt="logo- a blog" class="logo" />
+        <div class="blog-name">a blog</div>
+      </a>
+    </div>
+    <div class="header">
+      <h1 style="font-weight: 400; text-align: center"><%= post.title %></h1>
+      <h4 style="font-weight: 400; text-align: center">
+        <i><%= post.subtitle %></i>
+      </h4>
+      <br /><br />
+      <br />
+      <div class="deets">
+        <h4 style="text-align: left">
+          <i
+            ><%= post.date.toLocaleDateString('en-GB', {timeZone: 'IST'}) %>
+            &nbsp; <%= post.date.toLocaleTimeString('en-GB', {timeZone: 'IST'})
+            %></i
+          >
+        </h4>
         <span>
-            <h4 style="text-align: right; display: flex; align-items: center;">
-                -&nbsp;<img src="<%= post.author_image %>" alt="" width="30">&nbsp;
-                <span style="font-style: italic; width: min-content;"><%= post.author %></span>
-            </h4>
+          <h4 style="text-align: right; display: flex; align-items: center">
+            -&nbsp;<img
+              src="<%= post.author_image %>"
+              alt=""
+              width="40"
+            />&nbsp;
+            <span style="font-style: italic; width: min-content"
+              ><%= post.author %></span
+            >
+          </h4>
         </span>
-       </div>
-       <br>
-       <h4 style="text-align: left;"><i>Views: <%= post.views || 0 %></i></h4>
-       <br><br>
-   </div>
-   <br><br><br>
-   <p class="blog" style="white-space: pre-wrap;">
-    <%= post.article %>
-   </p>
-<br><br><br>
-<!-- Comment Form -->
-<h4>Leave a Comment</h4>
-<form id="comment-form" style="display: flex; align-items: center; gap: 10px;">
-    <input type="text" name="name" id="name" placeholder="name">
-    <textarea name="comment" id="comment" placeholder="comment" rows="1" style="width: 500px; height: 21px;" required></textarea>
-    <button type="submit">Submit</button>
-</form>
-<br>
-<!-- Display Comments -->
-<h3>Comments</h3>
-<div id="comments-section">
-    <% if (comments.length > 0) { %>
-        <% comments.forEach(comment => { %>
-            <div class="comment">
-                <span> <strong><%= comment.name %></strong> &nbsp;&nbsp;&nbsp; <small><%= new Date(comment.date).toLocaleString('en-GB', {timeZone: 'IST'}) %></small> </span>
-                <h5><%= comment.comment %></h5>
-            </div>
-        <% }); %>
-    <% } else { %>
-        <p>No comments yet. Be the first to comment!</p>
-    <% } %>
-</div>
+      </div>
+      <br />
+      <h4 style="text-align: left"><i>Views: <%= post.views || 0 %></i></h4>
+      <br /><br />
+    </div>
+    <br /><br /><br />
+    <p class="blog" style="white-space: pre-wrap"><%= post.article %></p>
+    <br /><br /><br />
+    <!-- Comment Form -->
+    <h4>Leave a Comment</h4>
+    <form
+      id="comment-form"
+      style="display: flex; align-items: center; gap: 10px"
+    >
+      <input type="text" name="name" id="name" placeholder="name" />
+      <textarea
+        name="comment"
+        id="comment"
+        placeholder="comment"
+        rows="1"
+        style="width: 500px; height: 21px"
+        required
+      ></textarea>
+      <button type="submit">Submit</button>
+    </form>
+    <br />
+    <!-- Display Comments -->
+    <h3>Comments</h3>
+    <div id="comments-section">
+      <% if (comments.length > 0) { %> <% comments.forEach(comment => { %>
+      <div class="comment">
+        <span>
+          <strong><%= comment.name %></strong> &nbsp;&nbsp;&nbsp;
+          <small
+            ><%= new Date(comment.date).toLocaleString('en-GB', {timeZone:
+            'IST'}) %></small
+          >
+        </span>
+        <h5><%= comment.comment %></h5>
+      </div>
+      <% }); %> <% } else { %>
+      <p>No comments yet. Be the first to comment!</p>
+      <% } %>
+    </div>
 
+    <script>
+      document
+        .getElementById("comment-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
 
+          const name = document.getElementById("name").value;
+          const comment = document.getElementById("comment").value;
+          const articleId = "<%= post.id %>"; // Pass the article ID dynamically
 
-<script>
-    document.getElementById("comment-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-
-        const name = document.getElementById("name").value;
-        const comment = document.getElementById("comment").value;
-        const articleId = "<%= post.id %>"; // Pass the article ID dynamically
-
-        if (!name || !comment) {
+          if (!name || !comment) {
             alert("Please fill out all fields.");
             return;
-        }
+          }
 
-        try {
-            console.log(JSON.stringify({ name, comment }))
+          try {
+            console.log(JSON.stringify({ name, comment }));
             const response = await fetch(`/blog/${articleId}/comments`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, comment }),
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, comment }),
             });
 
-            console.log(response)
+            console.log(response);
 
             if (response.ok) {
-                console.log("comment posted")
-                location.reload(); // Reload to show new comment
+              console.log("comment posted");
+              location.reload(); // Reload to show new comment
             } else {
-                alert("Error submitting comment.");
+              alert("Error submitting comment.");
             }
-        } catch (error) {
+          } catch (error) {
             console.error("Error:", error);
             alert("An error occurred. Please try again.");
-        }
-    });
-</script>
-
-</body>
+          }
+        });
+    </script>
+  </body>
 </html>
